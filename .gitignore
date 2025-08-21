@@ -1,0 +1,8 @@
+_quarto.yml
+.quarto/
+renders/site_libs/
+renders/index.html
+renders/search.json
+notebooks/project_notebook.quarto_ipynb
+
+/.quarto/

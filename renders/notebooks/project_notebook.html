@@ -154,11 +154,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="step-1---download-the-files-from-ministério-da-fazenda-repository" class="level3">
 <h3 class="anchored" data-anchor-id="step-1---download-the-files-from-ministério-da-fazenda-repository">Step 1 - Download the files from Ministério da Fazenda repository</h3>
 <p><strong>Installing the libraries will need</strong></p>
-<div id="74b169d8" class="cell" data-execution_count="1">
+<div id="c7c4c450" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pip install tqdm requests beautifulsoup4 urllib</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Importing the libraries will need</strong></p>
-<div id="3cf55033" class="cell" data-execution_count="2">
+<div id="78c086b4" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> bs4 <span class="im">import</span> BeautifulSoup</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
@@ -167,7 +167,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Accessing the repository webpage</strong></p>
-<div id="0f8fffab" class="cell" data-execution_count="3">
+<div id="f79819e9" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># URL with the .zip files</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -182,7 +182,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p><strong>Finding the most recent monthly folder</strong></p>
 <p>We’ll extract all folder names that match the <code>YYYY-MM/</code> format, sort them, and select the latest one.</p>
-<div id="ca4f25ba" class="cell" data-execution_count="4">
+<div id="f769491c" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parse the HTML content</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>soup <span class="op">=</span> BeautifulSoup(response.text, <span class="st">'html.parser'</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -204,7 +204,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Latest folder: "</span>, latest_folder)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Accessing the most recent folder</strong></p>
-<div id="62496527" class="cell" data-execution_count="5">
+<div id="e96022dd" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> latest_folder:</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    monthly_url <span class="op">=</span> <span class="ss">f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/</span><span class="sc">{</span>latest_folder<span class="sc">}</span><span class="ss">"</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    monthly_response <span class="op">=</span> requests.get(monthly_url)</span>
@@ -216,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(monthly_soup.prettify()[:<span class="dv">10000</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Identifying all the files to download</strong></p>
-<div id="b92adf27" class="cell" data-execution_count="6">
+<div id="2a96ae04" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find all &lt;a&gt; tags</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>zip_links <span class="op">=</span> monthly_soup.find_all(<span class="st">'a'</span>, href<span class="op">=</span> re.<span class="bu">compile</span>(<span class="vs">r'</span><span class="ch">\.</span><span class="vs">zip</span><span class="dv">$</span><span class="vs">'</span>))</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -224,8 +224,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(link[<span class="st">'href'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Downloading the files</strong></p>
-<p>This code chunk last longs a couple of hours in despite of the speed of your internet conection, because it downloads all the files of more then 60 million companies.</p>
-<div id="731e9d85" class="cell" data-execution_count="7">
+<p>This code chunk last longs a couple of hours in despite of the speed of your internet conection, because it downloads all the data from the Ministério da Fazenda repository of more then 60 million companies.</p>
+<div id="4b96a58a" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting the directory to save the downloaded files</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>download_dir <span class="op">=</span> <span class="vs">r"C:</span><span class="er">\</span><span class="vs">Users</span><span class="dv">\m</span><span class="vs">arci</span><span class="er">\</span><span class="vs">iCloudDrive</span><span class="er">\</span><span class="vs">Projeto Atendente IA</span><span class="dv">\B</span><span class="vs">ase CNPJ"</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>file_names <span class="op">=</span> [link[<span class="st">'href'</span>] <span class="cf">for</span> link <span class="kw">in</span> zip_links]</span>
@@ -272,12 +272,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.RequestException <span class="im">as</span> e:</span>
 <span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Download error </span><span class="sc">{</span>file_url<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-</section>
-<section id="micro-project-2---construct-an-api-to-give-access-to-the-data-on-our-cnpj-database" class="level2">
-<h2 class="anchored" data-anchor-id="micro-project-2---construct-an-api-to-give-access-to-the-data-on-our-cnpj-database">Micro-project 2 - Construct an API to give access to the data on our CNPJ database</h2>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
