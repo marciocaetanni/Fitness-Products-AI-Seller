@@ -1,6 +1,6 @@
 Fitness Products AI Seller
 
-On this project we've used Quarto (https://quarto.org/) to handle, visualize and publish all the process of data manipulation. The databases come Ministério da Fazenda's CNPJs public repository. We've used Python to treat and prepare data that will be used further by the AI WhatsApp seller.
+On this project we've used Quarto (https://quarto.org/) to handle, visualize and publish all the process of data manipulation. The databases come Ministério da Fazenda's CNPJs public repository. We've used Python to treat and prepare data that will be used further by the Fitness Product AI WhatsApp seller.
 
 # Step 1 - Install Quarto
 Go to https://quarto.org/docs/get-started/ and choose, download and install Quarto according to your OS.
