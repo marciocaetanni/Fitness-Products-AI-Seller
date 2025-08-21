@@ -1,0 +1,162 @@
+---
+title: "Fitness Products AI Seller Project"
+author: '<a href="https://www.linkedin.com/in/caetanomarcio/" target="_blank">Márcio Caetano</a>'
+format: html
+---
+
+## Overview
+
+This is a project of a Fitness Product AI Seller that works on WhatsApp. The intention is to use a complete set of different technologies, implementing them together in order to make it work.
+
+The project is divided into micro projects.
+
+## Micro-project 1 - Construct a WebScraaping Tool to get CNPJ data from Ministério da Fazenda repository
+
+The basic functionality that this micro-project will give us is to display the CNPJ data in a database. The objective is to make the database automatically update every month, as new data is uploaded on the Ministério da Fazenda repository.
+
+We're going to use Python to construct this webscrapping tool.
+
+### Step 1 - Download the files from Ministério da Fazenda repository
+
+**Installing the libraries will need**
+
+```{python}
+!pip install tqdm requests beautifulsoup4 urllib
+```
+
+**Importing the libraries will need**
+
+```{python}
+
+import requests
+from bs4 import BeautifulSoup
+import re
+from urllib.parse import urljoin
+import os
+from tqdm import tqdm
+```
+
+**Accessing the repository webpage**
+
+```{python}
+
+# URL with the .zip files
+url = "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"
+
+# Making a GET request
+response = requests.get(url)
+
+# Verifying the status
+print("Status code: ", response.status_code)
+
+# Showing the first 500 characters of the page
+print(response.text[:500])
+```
+
+**Finding the most recent monthly folder**
+
+We’ll extract all folder names that match the `YYYY-MM/` format, sort them, and select the latest one.
+
+```{python}
+
+# Parse the HTML content
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Find all <a> tags
+links = soup.find_all('a')
+
+# Use regex to match folder names like "2025-07/"
+folder_pattern = re.compile(r'^\d{4}-\d{2}/$')
+
+# Extract and filter folders
+folders = [link.get('href') for link in links if folder_pattern.match(link.get('href') or '')]
+
+# Sort folders in descending order to get the most recent one first
+folders_sorted = sorted(folders, reverse=True)
+
+# Pick the latest folder
+latest_folder = folders_sorted[0] if folders_sorted else None
+
+print("Latest folder: ", latest_folder)
+```
+
+**Accessing the most recent folder**
+
+```{python}
+
+if latest_folder:
+    monthly_url = f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/{latest_folder}"
+    monthly_response = requests.get(monthly_url)
+
+    if monthly_response.status_code == 200:
+        monthly_soup = BeautifulSoup(monthly_response.text, 'html.parser')
+
+# Showing the first 1000 characters of the page
+print(monthly_soup.prettify()[:10000])
+```
+
+**Identifying all the files to download**
+
+```{python}
+
+# Find all <a> tags
+zip_links = monthly_soup.find_all('a', href= re.compile(r'\.zip$'))
+
+for link in zip_links:
+    print(link['href'])
+```
+
+**Downloading the files**
+
+This code chunk last longs a couple of hours in despite of the speed of your internet conection, because it downloads all the data from the Ministério da Fazenda repository of more then 60 million companies.
+
+```{python}
+
+# Setting the directory to save the downloaded files
+download_dir = r"C:\Users\marci\iCloudDrive\Projeto Atendente IA\Base CNPJ"
+file_names = [link['href'] for link in zip_links]
+
+# Downloading the files
+for file_name in file_names:
+    # Constructing the full url
+    file_url = urljoin(monthly_url, file_name)
+
+# Checking if the directory exists
+os.makedirs(download_dir, exist_ok=True)
+
+for file_name in file_names:
+    file_url = urljoin(monthly_url, file_name)
+    file_path = os.path.join(download_dir, os.path.basename(file_name))
+
+    print(f"\nDownloading: {file_url}")
+
+    try:
+        with requests.get(file_url, stream=True) as response:
+            response.raise_for_status()
+            total_size = int(response.headers.get('content-length', 0))
+
+            # Creating the progress bar
+            progress = tqdm(
+                total=total_size,
+                unit='B',
+                unit_scale=True,
+                unit_divisor=1024,
+                desc=os.path.basename(file_path),
+                ncols=80
+            )
+
+            with open(file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        # Updates the bar with the size of the chunk
+                        progress.update(len(chunk))
+
+            progress.close()
+            print("✔️ Download finished!")
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Download error {file_url}: {e}")
+
+```
+
