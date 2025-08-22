@@ -122,7 +122,11 @@ os.makedirs(local_download_dir, exist_ok=True)
 local_dir_file_list = os.listdir(local_download_dir)
 rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
 
-if local_dir_file_list == rep_file_list:
+if sorted(local_dir_file_list) == sorted(rep_file_list):
+    # Setting up global variables will need
+    redo_download_link_list = []
+    redo_download_file_list = []
+
     # Verifying if all the files are completly downloaded and not corrupted in the download directory
     for file in rep_file_list:
         rep_file_name = os.path.basename(file)
@@ -136,16 +140,25 @@ if local_dir_file_list == rep_file_list:
         else:
             print(f"❌ The {file} is corrupted or not downloaded correctly!")
             print(f"Expected size: {rep_file_size} bytes, but got: {local_dir_file_size} bytes")
+
+            # Setting up the links to download again
+            redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
+
+            redo_download_file_list = redo_download_file_list + [f"{file}"]
+            
+    redo_download_file_text = "\n".join([f"- {file}" for file in redo_download_file_list])
+    print(f"The following files will be downloaded again: \n {redo_download_file_text}")
+
 else:
     difference = [file for file in rep_file_list if file not in local_dir_file_list]
-    difference_list = "\n".join([f"- {item}" for item in difference])
+    difference_text = "\n".join([f"- {item}" for item in difference])
 
-    print("The following files are missing: \n" + str(difference_list))
+    print("The following files are missing: \n" + str(difference_text))
 ```
 
 ### Step 2 - Treating the data scrapped
 ```{python}
-type(local_dir_file_size)
+print(redo_download_file_text)
 ```
 
 ```{python}
