@@ -154,11 +154,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="step-1---download-the-files-from-ministério-da-fazenda-repository" class="level3">
 <h3 class="anchored" data-anchor-id="step-1---download-the-files-from-ministério-da-fazenda-repository">Step 1 - Download the files from Ministério da Fazenda repository</h3>
 <p><strong>Installing the libraries will need</strong></p>
-<div id="c7c4c450" class="cell" data-execution_count="1">
+<div id="a2c01c1e" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>pip install tqdm requests beautifulsoup4 urllib</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Importing the libraries will need</strong></p>
-<div id="78c086b4" class="cell" data-execution_count="2">
+<div id="0fc5bb0c" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> bs4 <span class="im">import</span> BeautifulSoup</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
@@ -167,12 +167,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Accessing the repository webpage</strong></p>
-<div id="f79819e9" class="cell" data-execution_count="3">
+<div id="5fcac9d7" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># URL with the .zip files</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>url <span class="op">=</span> <span class="st">"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>rep_url <span class="op">=</span> <span class="st">"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Making a GET request</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(url)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>response <span class="op">=</span> requests.get(rep_url)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Verifying the status</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Status code: "</span>, response.status_code)</span>
@@ -182,95 +182,152 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p><strong>Finding the most recent monthly folder</strong></p>
 <p>We’ll extract all folder names that match the <code>YYYY-MM/</code> format, sort them, and select the latest one.</p>
-<div id="f769491c" class="cell" data-execution_count="4">
+<div id="1e0eb20f" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Parse the HTML content</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>soup <span class="op">=</span> BeautifulSoup(response.text, <span class="st">'html.parser'</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>rep_soup <span class="op">=</span> BeautifulSoup(response.text, <span class="st">'html.parser'</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Find all &lt;a&gt; tags</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>links <span class="op">=</span> soup.find_all(<span class="st">'a'</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>rep_links <span class="op">=</span> rep_soup.find_all(<span class="st">'a'</span>)</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Use regex to match folder names like "2025-07/"</span></span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>folder_pattern <span class="op">=</span> re.<span class="bu">compile</span>(<span class="vs">r'</span><span class="dv">^\d</span><span class="op">{4}</span><span class="vs">-</span><span class="dv">\d</span><span class="op">{2}</span><span class="vs">/</span><span class="dv">$</span><span class="vs">'</span>)</span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract and filter folders</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>folders <span class="op">=</span> [link.get(<span class="st">'href'</span>) <span class="cf">for</span> link <span class="kw">in</span> links <span class="cf">if</span> folder_pattern.match(link.get(<span class="st">'href'</span>) <span class="kw">or</span> <span class="st">''</span>)]</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>rep_folders <span class="op">=</span> [link.get(<span class="st">'href'</span>) <span class="cf">for</span> link <span class="kw">in</span> rep_links <span class="cf">if</span> folder_pattern.match(link.get(<span class="st">'href'</span>) <span class="kw">or</span> <span class="st">''</span>)]</span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort folders in descending order to get the most recent one first</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>folders_sorted <span class="op">=</span> <span class="bu">sorted</span>(folders, reverse<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>rep_folders_sorted <span class="op">=</span> <span class="bu">sorted</span>(rep_folders, reverse<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Pick the latest folder</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>latest_folder <span class="op">=</span> folders_sorted[<span class="dv">0</span>] <span class="cf">if</span> folders_sorted <span class="cf">else</span> <span class="va">None</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>rep_latest_folder <span class="op">=</span> rep_folders_sorted[<span class="dv">0</span>] <span class="cf">if</span> rep_folders_sorted <span class="cf">else</span> <span class="va">None</span></span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Latest folder: "</span>, latest_folder)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Latest folder: "</span>, rep_latest_folder)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Accessing the most recent folder</strong></p>
-<div id="e96022dd" class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> latest_folder:</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    monthly_url <span class="op">=</span> <span class="ss">f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/</span><span class="sc">{</span>latest_folder<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    monthly_response <span class="op">=</span> requests.get(monthly_url)</span>
+<div id="347020c9" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> rep_latest_folder:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    rep_monthly_url <span class="op">=</span> <span class="ss">f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/</span><span class="sc">{</span>rep_latest_folder<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    rep_monthly_url_response <span class="op">=</span> requests.get(rep_monthly_url)</span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> monthly_response.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        monthly_soup <span class="op">=</span> BeautifulSoup(monthly_response.text, <span class="st">'html.parser'</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> rep_monthly_url_response.status_code <span class="op">==</span> <span class="dv">200</span>:</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        rep_monthly_latest_folder_soup <span class="op">=</span> BeautifulSoup(rep_monthly_url_response.text, <span class="st">'html.parser'</span>)</span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Showing the first 1000 characters of the page</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(monthly_soup.prettify()[:<span class="dv">10000</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(rep_monthly_latest_folder_soup.prettify()[:<span class="dv">10000</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><strong>Identifying all the files to download</strong></p>
-<div id="2a96ae04" class="cell" data-execution_count="6">
+<div id="37170319" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find all &lt;a&gt; tags</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>zip_links <span class="op">=</span> monthly_soup.find_all(<span class="st">'a'</span>, href<span class="op">=</span> re.<span class="bu">compile</span>(<span class="vs">r'</span><span class="ch">\.</span><span class="vs">zip</span><span class="dv">$</span><span class="vs">'</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>rep_latest_folder_zip_files <span class="op">=</span> rep_monthly_latest_folder_soup.find_all(<span class="st">'a'</span>, href<span class="op">=</span> re.<span class="bu">compile</span>(<span class="vs">r'</span><span class="ch">\.</span><span class="vs">zip</span><span class="dv">$</span><span class="vs">'</span>))</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> link <span class="kw">in</span> zip_links:</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> link <span class="kw">in</span> rep_latest_folder_zip_files:</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(link[<span class="st">'href'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p><strong>Downloading the files</strong></p>
-<p>This code chunk last longs a couple of hours in despite of the speed of your internet conection, because it downloads all the data from the Ministério da Fazenda repository of more then 60 million companies.</p>
-<div id="4b96a58a" class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Setting the directory to save the downloaded files</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>download_dir <span class="op">=</span> <span class="vs">r"C:</span><span class="er">\</span><span class="vs">Users</span><span class="dv">\m</span><span class="vs">arci</span><span class="er">\</span><span class="vs">iCloudDrive</span><span class="er">\</span><span class="vs">Projeto Atendente IA</span><span class="dv">\B</span><span class="vs">ase CNPJ"</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>file_names <span class="op">=</span> [link[<span class="st">'href'</span>] <span class="cf">for</span> link <span class="kw">in</span> zip_links]</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Downloading the files</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file_name <span class="kw">in</span> file_names:</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Constructing the full url</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    file_url <span class="op">=</span> urljoin(monthly_url, file_name)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Checking if the directory exists</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>os.makedirs(download_dir, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> file_name <span class="kw">in</span> file_names:</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    file_url <span class="op">=</span> urljoin(monthly_url, file_name)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    file_path <span class="op">=</span> os.path.join(download_dir, os.path.basename(file_name))</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Downloading: </span><span class="sc">{</span>file_url<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> requests.get(file_url, stream<span class="op">=</span><span class="va">True</span>) <span class="im">as</span> response:</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>            response.raise_for_status()</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>            total_size <span class="op">=</span> <span class="bu">int</span>(response.headers.get(<span class="st">'content-length'</span>, <span class="dv">0</span>))</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Creating the progress bar</span></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            progress <span class="op">=</span> tqdm(</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>                total<span class="op">=</span>total_size,</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>                unit<span class="op">=</span><span class="st">'B'</span>,</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>                unit_scale<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>                unit_divisor<span class="op">=</span><span class="dv">1024</span>,</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>                desc<span class="op">=</span>os.path.basename(file_path),</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>                ncols<span class="op">=</span><span class="dv">80</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>            )</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(file_path, <span class="st">'wb'</span>) <span class="im">as</span> f:</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> chunk <span class="kw">in</span> response.iter_content(chunk_size<span class="op">=</span><span class="dv">8192</span>):</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">if</span> chunk:</span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>                        f.write(chunk)</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>                        <span class="co"># Updates the bar with the size of the chunk</span></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>                        progress.update(<span class="bu">len</span>(chunk))</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            progress.close()</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="st">"✔️ Download finished!"</span>)</span>
+<p><strong>Creating a function to verify if all the files are correctly downloaded locally</strong></p>
+<div id="ea50941b" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a function to verify the files locally</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> verify_folder():</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Setting up a download directory in our computer</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    local_download_dir <span class="op">=</span> <span class="ss">f"C:/Users/marci/iCloudDrive/Base CNPJ/</span><span class="sc">{</span>rep_latest_folder<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Verifying if the download directory already exists, and if not, creating one</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    os.makedirs(local_download_dir, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Setting up variables will need</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    local_dir_file_list <span class="op">=</span> os.listdir(local_download_dir)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    rep_file_list <span class="op">=</span> [link[<span class="st">'href'</span>] <span class="cf">for</span> link <span class="kw">in</span> rep_latest_folder_zip_files]</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    redo_download_link_list <span class="op">=</span> []</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    redo_download_file_list <span class="op">=</span> []</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Loop to verify every file</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> rep_file_list:</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Setting up variables will need </span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        local_file_path <span class="op">=</span> os.path.join(local_download_dir, <span class="bu">file</span>)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.exists(local_file_path):</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>            local_dir_file_size <span class="op">=</span> <span class="bu">str</span>(os.path.getsize(local_file_path))    </span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>        rep_file_size <span class="op">=</span> <span class="bu">str</span>(requests.head(urljoin(rep_monthly_url, <span class="bu">file</span>)).headers.get(<span class="st">'Content-Length'</span>, <span class="dv">0</span>))</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Checking if the file doesn't exist locally</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">file</span> <span class="kw">not</span> <span class="kw">in</span> local_dir_file_list:</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Setting up the links to download again</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>            redo_download_link_list <span class="op">=</span> redo_download_link_list <span class="op">+</span> [urljoin(rep_monthly_url, <span class="bu">file</span>)]</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Setting up the files names list</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>            redo_download_file_list <span class="op">+=</span> [<span class="bu">file</span>]</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If the file exists, checking if their sizes matches</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> local_dir_file_size <span class="op">!=</span> rep_file_size:</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"❌ The </span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss"> is corrupted!"</span>)</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Expected size: </span><span class="sc">{</span>rep_file_size<span class="sc">}</span><span class="ss"> bytes, but got: </span><span class="sc">{</span>local_dir_file_size<span class="sc">}</span><span class="ss"> bytes"</span>)</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Setting up the links to download again</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>            redo_download_link_list <span class="op">=</span> redo_download_link_list <span class="op">+</span> [urljoin(rep_monthly_url, <span class="bu">file</span>)]</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Setting up the files names list</span></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            redo_download_file_list <span class="op">=</span> redo_download_file_list <span class="op">+</span> [<span class="ss">f"</span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss">"</span>]</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
 <span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.RequestException <span class="im">as</span> e:</span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Download error </span><span class="sc">{</span>file_url<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        <span class="co"># If the file exists and their sizes matches     </span></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> local_dir_file_size <span class="op">==</span> rep_file_size:</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"✔️ The </span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss"> is downloaded and not corrupted!"</span>)</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    redo_download_file_text <span class="op">=</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join([<span class="ss">f"- 🔄 </span><span class="sc">{</span><span class="bu">file</span><span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> redo_download_file_list])</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">⚠️ The following files will be downloaded again:</span><span class="ch">\n</span><span class="sc">{</span>redo_download_file_text<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="step-2---treating-the-data-scrapped" class="level3">
+<h3 class="anchored" data-anchor-id="step-2---treating-the-data-scrapped">Step 2 - Treating the data scrapped</h3>
+<div id="01488bef" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(redo_download_file_text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="bbb10c75" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function with restarting download</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_with_resume(url, file_path, chunk_size<span class="op">=</span><span class="dv">8192</span>):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Verifying if a partial file exists</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    temp_size <span class="op">=</span> os.path.getsize(file_path) <span class="cf">if</span> os.path.exists(file_path) <span class="cf">else</span> <span class="dv">0</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Verifying if it is accepted range download</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    head <span class="op">=</span> requests.head(url)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    accept_ranges <span class="op">=</span> head.headers.get(<span class="st">'Accept-Ranges'</span>, <span class="st">'none'</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    total_size <span class="op">=</span> <span class="bu">int</span>(head.headers.get(<span class="st">'Content-Length'</span>, <span class="dv">0</span>))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> accept_ranges <span class="op">!=</span> <span class="st">'bytes'</span>:</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        temp_size <span class="op">=</span> <span class="dv">0</span>  </span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    headers <span class="op">=</span> {<span class="st">'Range'</span>: <span class="ss">f"bytes=</span><span class="sc">{</span>temp_size<span class="sc">}</span><span class="ss">-"</span>} <span class="cf">if</span> temp_size <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> {}</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Stream download</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> requests.get(url, headers<span class="op">=</span>headers, stream<span class="op">=</span><span class="va">True</span>) <span class="im">as</span> r:</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        r.raise_for_status()</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        mode <span class="op">=</span> <span class="st">'ab'</span> <span class="cf">if</span> temp_size <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="st">'wb'</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> <span class="bu">open</span>(file_path, mode) <span class="im">as</span> f:</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>            progress <span class="op">=</span> tqdm(</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>                total<span class="op">=</span>total_size,</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>                initial<span class="op">=</span>temp_size,</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>                unit<span class="op">=</span><span class="st">'B'</span>,</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>                unit_scale<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>                unit_divisor<span class="op">=</span><span class="dv">1024</span>,</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>                desc<span class="op">=</span>os.path.basename(file_path),</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>                ncols<span class="op">=</span><span class="dv">80</span></span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> chunk <span class="kw">in</span> r.iter_content(chunk_size<span class="op">=</span>chunk_size):</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> chunk:</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>                    f.write(chunk)</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>                    progress.update(<span class="bu">len</span>(chunk))</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>            progress.close()</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"✔️ </span><span class="sc">{</span>os<span class="sc">.</span>path<span class="sc">.</span>basename(file_path)<span class="sc">}</span><span class="ss"> finished!"</span>)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop to download all the files</span></span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> rep_file_name <span class="kw">in</span> rep_file_list:</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>    file_url <span class="op">=</span> urljoin(monthly_url, rep_file_name)</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>    file_path <span class="op">=</span> os.path.join(local_download_dir, os.path.basename(rep_file_name))</span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">🔽 Downloading: </span><span class="sc">{</span>rep_latest_folder<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>rep_file_name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>        download_with_resume(file_url, file_path)</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> requests.exceptions.RequestException <span class="im">as</span> e:</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"❌ Download error </span><span class="sc">{</span>file_url<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

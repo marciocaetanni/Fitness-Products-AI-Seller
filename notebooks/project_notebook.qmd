@@ -106,60 +106,62 @@ for link in rep_latest_folder_zip_files:
     print(link['href'])
 ```
 
-**Downloading the files**
-
-This code chunk last longs a couple of hours in despite of the speed of your internet conection, because it downloads all the data from the Ministério da Fazenda repository of more then 60 million companies.
+**Creating a function to verify if all the files are correctly downloaded locally**
 
 ```{python}
+# Creating a function to verify the files locally
+def verify_folder():
+    # Setting up a download directory in our computer
+    local_download_dir = f"C:/Users/marci/iCloudDrive/Base CNPJ/{rep_latest_folder}"
 
-# Setting up a download directory in our computer
-local_download_dir = f"C:/Users/marci/iCloudDrive/Base CNPJ/{rep_latest_folder}"
+    # Verifying if the download directory already exists, and if not, creating one
+    os.makedirs(local_download_dir, exist_ok=True)
 
-# Verifying if the download directory already exists, and if not, creating one
-os.makedirs(local_download_dir, exist_ok=True)
-
-# Verifying if all the files are completly downloaded and not corrupted in the {rep_latest_folder}
-local_dir_file_list = os.listdir(local_download_dir)
-rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
-
-if sorted(local_dir_file_list) == sorted(rep_file_list):
-    # Setting up global variables will need
+    # Setting up variables will need
+    local_dir_file_list = os.listdir(local_download_dir)
+    rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
     redo_download_link_list = []
     redo_download_file_list = []
 
-    # Verifying if all the files are completly downloaded and not corrupted in the download directory
+    # Loop to verify every file
     for file in rep_file_list:
-        rep_file_name = os.path.basename(file)
+        # Setting up variables will need 
+        local_file_path = os.path.join(local_download_dir, file)
+        if os.path.exists(local_file_path):
+            local_dir_file_size = str(os.path.getsize(local_file_path))    
         rep_file_size = str(requests.head(urljoin(rep_monthly_url, file)).headers.get('Content-Length', 0))
 
-        local_dir_file_name = os.path.basename(file)
-        local_dir_file_size = str(os.path.getsize(os.path.join(local_download_dir, file)))
+        # Checking if the file doesn't exist locally
+        if file not in local_dir_file_list:
+            # Setting up the links to download again
+            redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
 
-        if local_dir_file_name == rep_file_name and local_dir_file_size == rep_file_size:
-            print(f"✔️ The {file} is downloaded and not corrupted!")
-        else:
-            print(f"❌ The {file} is corrupted or not downloaded correctly!")
+            # Setting up the files names list
+            redo_download_file_list += [file]
+            continue
+
+        # If the file exists, checking if their sizes matches
+        if local_dir_file_size != rep_file_size:
+            print(f"❌ The {file} is corrupted!")
             print(f"Expected size: {rep_file_size} bytes, but got: {local_dir_file_size} bytes")
 
             # Setting up the links to download again
             redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
 
+            # Setting up the files names list
             redo_download_file_list = redo_download_file_list + [f"{file}"]
-            
-    redo_download_file_text = "\n".join([f"- {file}" for file in redo_download_file_list])
-    print(f"The following files will be downloaded again: \n {redo_download_file_text}")
+            continue
 
-else:
-    difference = [file for file in rep_file_list if file not in local_dir_file_list]
-    difference_text = "\n".join([f"- {item}" for item in difference])
+        # If the file exists and their sizes matches     
+        if local_dir_file_size == rep_file_size:
+            print(f"✔️ The {file} is downloaded and not corrupted!")
 
-    print("The following files are missing: \n" + str(difference_text))
+    redo_download_file_text = "\n".join([f"- 🔄 {file}" for file in redo_download_file_list])
+
+    print(f"\n⚠️ The following files will be downloaded again:\n{redo_download_file_text}")
 ```
 
 ### Step 2 - Treating the data scrapped
-```{python}
-print(redo_download_file_text)
-```
 
 ```{python}
 # Function with restarting download
