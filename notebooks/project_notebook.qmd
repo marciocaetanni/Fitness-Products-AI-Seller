@@ -21,7 +21,7 @@ We're going to use Python to construct this webscrapping tool.
 **Installing the libraries will need**
 
 ```{python}
-!pip install tqdm requests beautifulsoup4 urllib
+!pip install tqdm requests beautifulsoup4 urllib3 python-dotenv
 ```
 
 **Importing the libraries will need**
@@ -34,6 +34,7 @@ import re
 from urllib.parse import urljoin
 import os
 from tqdm import tqdm
+from dotenv import load_dotenv
 ```
 
 **Accessing the repository webpage**
@@ -109,56 +110,109 @@ for link in rep_latest_folder_zip_files:
 **Creating a function to verify if all the files are correctly downloaded locally**
 
 ```{python}
+load_dotenv(override=True) 
+
 # Creating a function to verify the files locally
 def verify_folder():
+    # Printing a loading page
+    print("We're getting things ready to verify your files...\n")
+
+    # URL with the .zip files
+    rep_url = "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"
+
+    # Making a GET request
+    response = requests.get(rep_url)
+
+    # Parse the HTML content
+    rep_soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find all <a> tags
+    rep_links = rep_soup.find_all('a')
+
+    # Use regex to match folder names like "2025-07/"
+    folder_pattern = re.compile(r'^\d{4}-\d{2}/$')
+
+    # Extract and filter folders
+    rep_folders = [link.get('href') for link in rep_links if folder_pattern.match(link.get('href') or '')]
+
+    # Sort folders in descending order to get the most recent one first
+    rep_folders_sorted = sorted(rep_folders, reverse=True)
+
+    # Pick the latest folder
+    rep_latest_folder = rep_folders_sorted[0] if rep_folders_sorted else None
+
+    # Accessing the most recent folder
+    if rep_latest_folder:
+        rep_monthly_url = f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/{rep_latest_folder}"
+        rep_monthly_url_response = requests.get(rep_monthly_url)
+
+        if rep_monthly_url_response.status_code == 200:
+            rep_monthly_latest_folder_soup = BeautifulSoup(rep_monthly_url_response.text, 'html.parser')
+
+    # Find all <a> tags
+    rep_latest_folder_zip_files = rep_monthly_latest_folder_soup.find_all('a', href= re.compile(r'\.zip$'))
+
     # Setting up a download directory in our computer
-    local_download_dir = f"C:/Users/marci/iCloudDrive/Base CNPJ/{rep_latest_folder}"
+    local_download_dir = os.getenv("LOCAL_DOWNLOAD_DIR")
+    local_download_dir = os.path.join(local_download_dir, rep_latest_folder)
 
     # Verifying if the download directory already exists, and if not, creating one
     os.makedirs(local_download_dir, exist_ok=True)
 
     # Setting up variables will need
+    all_files_ok = None
     local_dir_file_list = os.listdir(local_download_dir)
     rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
     redo_download_link_list = []
     redo_download_file_list = []
 
-    # Loop to verify every file
-    for file in rep_file_list:
-        # Setting up variables will need 
-        local_file_path = os.path.join(local_download_dir, file)
-        if os.path.exists(local_file_path):
-            local_dir_file_size = str(os.path.getsize(local_file_path))    
-        rep_file_size = str(requests.head(urljoin(rep_monthly_url, file)).headers.get('Content-Length', 0))
+    while not all_files_ok:
+        # Loop to verify every file
+        for file in rep_file_list:
+            # Setting up variables will need 
+            local_file_path = os.path.join(local_download_dir, file)
+            if os.path.exists(local_file_path):
+                local_dir_file_size = str(os.path.getsize(local_file_path))    
+            rep_file_size = str(requests.head(urljoin(rep_monthly_url, file)).headers.get('Content-Length', 0))
 
-        # Checking if the file doesn't exist locally
-        if file not in local_dir_file_list:
-            # Setting up the links to download again
-            redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
+            # Checking if the file doesn't exist locally
+            if file not in local_dir_file_list:
+                print(f"🚫 The {file} is missing out!")
+                # Setting up the links to download again
+                redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
 
-            # Setting up the files names list
-            redo_download_file_list += [file]
-            continue
+                # Setting up the files names list
+                redo_download_file_list += [file]
+                continue
 
-        # If the file exists, checking if their sizes matches
-        if local_dir_file_size != rep_file_size:
-            print(f"❌ The {file} is corrupted!")
-            print(f"Expected size: {rep_file_size} bytes, but got: {local_dir_file_size} bytes")
+            # If the file exists, checking if their sizes matches
+            if local_dir_file_size != rep_file_size:
+                print(f"❌ The {file} is corrupted!")
+                print(f"Expected size: {rep_file_size} bytes, but got: {local_dir_file_size} bytes")
 
-            # Setting up the links to download again
-            redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
+                # Setting up the links to download again
+                redo_download_link_list = redo_download_link_list + [urljoin(rep_monthly_url, file)]
 
-            # Setting up the files names list
-            redo_download_file_list = redo_download_file_list + [f"{file}"]
-            continue
+                # Setting up the files names list
+                redo_download_file_list = redo_download_file_list + [f"{file}"]
+                continue
 
-        # If the file exists and their sizes matches     
-        if local_dir_file_size == rep_file_size:
-            print(f"✔️ The {file} is downloaded and not corrupted!")
+            # If the file exists and their sizes matches     
+            if local_dir_file_size == rep_file_size:
+                print(f"✔️ The {file} is downloaded and not corrupted!")
 
-    redo_download_file_text = "\n".join([f"- 🔄 {file}" for file in redo_download_file_list])
+        if not redo_download_file_list:
+            all_files_ok = True
+            print("⭐ All the files are ok!")
+            
+        if redo_download_file_list:
+            redo_download_file_text = "\n".join([f"- 🔄 {file}" for file in redo_download_file_list])        
+            print(f"\n⚠️ The following files will be downloaded again:\n{redo_download_file_text}")
 
-    print(f"\n⚠️ The following files will be downloaded again:\n{redo_download_file_text}")
+        break
+```
+
+```{python}
 ```
 
 ### Step 2 - Treating the data scrapped
