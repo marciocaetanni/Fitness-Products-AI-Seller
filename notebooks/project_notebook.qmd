@@ -41,10 +41,10 @@ from tqdm import tqdm
 ```{python}
 
 # URL with the .zip files
-url = "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"
+rep_url = "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/?C=N;O=D"
 
 # Making a GET request
-response = requests.get(url)
+response = requests.get(rep_url)
 
 # Verifying the status
 print("Status code: ", response.status_code)
@@ -60,39 +60,39 @@ We’ll extract all folder names that match the `YYYY-MM/` format, sort them, an
 ```{python}
 
 # Parse the HTML content
-soup = BeautifulSoup(response.text, 'html.parser')
+rep_soup = BeautifulSoup(response.text, 'html.parser')
 
 # Find all <a> tags
-links = soup.find_all('a')
+rep_links = rep_soup.find_all('a')
 
 # Use regex to match folder names like "2025-07/"
 folder_pattern = re.compile(r'^\d{4}-\d{2}/$')
 
 # Extract and filter folders
-folders = [link.get('href') for link in links if folder_pattern.match(link.get('href') or '')]
+rep_folders = [link.get('href') for link in rep_links if folder_pattern.match(link.get('href') or '')]
 
 # Sort folders in descending order to get the most recent one first
-folders_sorted = sorted(folders, reverse=True)
+rep_folders_sorted = sorted(rep_folders, reverse=True)
 
 # Pick the latest folder
-latest_folder = folders_sorted[0] if folders_sorted else None
+rep_latest_folder = rep_folders_sorted[0] if rep_folders_sorted else None
 
-print("Latest folder: ", latest_folder)
+print("Latest folder: ", rep_latest_folder)
 ```
 
 **Accessing the most recent folder**
 
 ```{python}
 
-if latest_folder:
-    monthly_url = f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/{latest_folder}"
-    monthly_response = requests.get(monthly_url)
+if rep_latest_folder:
+    rep_monthly_url = f"https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/{rep_latest_folder}"
+    rep_monthly_url_response = requests.get(rep_monthly_url)
 
-    if monthly_response.status_code == 200:
-        monthly_soup = BeautifulSoup(monthly_response.text, 'html.parser')
+    if rep_monthly_url_response.status_code == 200:
+        rep_monthly_latest_folder_soup = BeautifulSoup(rep_monthly_url_response.text, 'html.parser')
 
 # Showing the first 1000 characters of the page
-print(monthly_soup.prettify()[:10000])
+print(rep_monthly_latest_folder_soup.prettify()[:10000])
 ```
 
 **Identifying all the files to download**
@@ -100,9 +100,9 @@ print(monthly_soup.prettify()[:10000])
 ```{python}
 
 # Find all <a> tags
-zip_links = monthly_soup.find_all('a', href= re.compile(r'\.zip$'))
+rep_latest_folder_zip_files = rep_monthly_latest_folder_soup.find_all('a', href= re.compile(r'\.zip$'))
 
-for link in zip_links:
+for link in rep_latest_folder_zip_files:
     print(link['href'])
 ```
 
@@ -112,51 +112,88 @@ This code chunk last longs a couple of hours in despite of the speed of your int
 
 ```{python}
 
-# Setting the directory to save the downloaded files
-download_dir = r"C:\Users\marci\iCloudDrive\Projeto Atendente IA\Base CNPJ"
-file_names = [link['href'] for link in zip_links]
+# Setting up a download directory in our computer
+local_download_dir = f"C:/Users/marci/iCloudDrive/Base CNPJ/r{rep_latest_folder}"
 
-# Downloading the files
-for file_name in file_names:
-    # Constructing the full url
-    file_url = urljoin(monthly_url, file_name)
+# Making a list of the files to download
+rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
 
-# Checking if the directory exists
-os.makedirs(download_dir, exist_ok=True)
+# Verifying if the download directory already exists, and if not, creating one
+os.makedirs(local_download_dir, exist_ok=True)
 
-for file_name in file_names:
-    file_url = urljoin(monthly_url, file_name)
-    file_path = os.path.join(download_dir, os.path.basename(file_name))
+# Verifying if all the files are completly downloaded and not corrupted in the {rep_latest_folder}
+local_dir_file_list = os.listdir(local_download_dir)
 
-    print(f"\nDownloading: {file_url}")
+if local_dir_file_list == rep_file_list:
+    # Verifying if all the files are completly downloaded and not corrupted in the download directory
+    for file in local_dir_file_list:
+        local_dir_file_name = os.path.basename(file)
+        local_dir_file_size = os.path.getsize(os.path.join(local_download_dir, file))
 
-    try:
-        with requests.get(file_url, stream=True) as response:
-            response.raise_for_status()
-            total_size = int(response.headers.get('content-length', 0))
+        rep_file_name = 
+        rep_file_size = requests.head(rep_file_download_link).headers.get('Content-Length', 0)
 
-            # Creating the progress bar
+        if local_dir_file_name == rep_file_name & local_dir_file_size == rep_file_size:
+            print(f"✔️ The {file} is downloaded and not corrupted!")
+        else:
+            print(f"❌ The {file} is corrupted or not downloaded correctly!")
+            print(f"Expected size: {rep_file_size} bytes, but got: {local_dir_file_size} bytes")
+else:
+    difference = [file for file in rep_file_list if file not in local_dir_file_list]
+    difference_list = "\n".join([f"- {item}" for item in difference])
+
+    print("The following files are missing: \n" + str(difference_list))
+```
+
+### Step 2 - Treating the data scrapped
+```{python}
+rep_file_list
+```
+
+```{python}
+# Function with restarting download
+def download_with_resume(url, file_path, chunk_size=8192):
+    # Verifying if a partial file exists
+    temp_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+
+    # Verifying if it is accepted range download
+    head = requests.head(url)
+    accept_ranges = head.headers.get('Accept-Ranges', 'none')
+    total_size = int(head.headers.get('Content-Length', 0))
+
+    if accept_ranges != 'bytes':
+        temp_size = 0  
+
+    headers = {'Range': f"bytes={temp_size}-"} if temp_size > 0 else {}
+
+    # Stream download
+    with requests.get(url, headers=headers, stream=True) as r:
+        r.raise_for_status()
+        mode = 'ab' if temp_size > 0 else 'wb'
+        with open(file_path, mode) as f:
             progress = tqdm(
                 total=total_size,
+                initial=temp_size,
                 unit='B',
                 unit_scale=True,
                 unit_divisor=1024,
                 desc=os.path.basename(file_path),
                 ncols=80
             )
-
-            with open(file_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-                        # Updates the bar with the size of the chunk
-                        progress.update(len(chunk))
-
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                if chunk:
+                    f.write(chunk)
+                    progress.update(len(chunk))
             progress.close()
-            print("✔️ Download finished!")
+    print(f"✔️ {os.path.basename(file_path)} finished!")
 
+# Loop to download all the files
+for rep_file_name in rep_file_list:
+    file_url = urljoin(monthly_url, rep_file_name)
+    file_path = os.path.join(local_download_dir, os.path.basename(rep_file_name))
+    print(f"\n🔽 Downloading: {rep_latest_folder}/{rep_file_name}")
+    try:
+        download_with_resume(file_url, file_path)
     except requests.exceptions.RequestException as e:
         print(f"❌ Download error {file_url}: {e}")
-
 ```
-
