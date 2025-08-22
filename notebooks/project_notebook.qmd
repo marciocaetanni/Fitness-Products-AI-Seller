@@ -113,27 +113,25 @@ This code chunk last longs a couple of hours in despite of the speed of your int
 ```{python}
 
 # Setting up a download directory in our computer
-local_download_dir = f"C:/Users/marci/iCloudDrive/Base CNPJ/r{rep_latest_folder}"
-
-# Making a list of the files to download
-rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
+local_download_dir = f"C:/Users/marci/iCloudDrive/Base CNPJ/{rep_latest_folder}"
 
 # Verifying if the download directory already exists, and if not, creating one
 os.makedirs(local_download_dir, exist_ok=True)
 
 # Verifying if all the files are completly downloaded and not corrupted in the {rep_latest_folder}
 local_dir_file_list = os.listdir(local_download_dir)
+rep_file_list = [link['href'] for link in rep_latest_folder_zip_files]
 
 if local_dir_file_list == rep_file_list:
     # Verifying if all the files are completly downloaded and not corrupted in the download directory
-    for file in local_dir_file_list:
+    for file in rep_file_list:
+        rep_file_name = os.path.basename(file)
+        rep_file_size = str(requests.head(urljoin(rep_monthly_url, file)).headers.get('Content-Length', 0))
+
         local_dir_file_name = os.path.basename(file)
-        local_dir_file_size = os.path.getsize(os.path.join(local_download_dir, file))
+        local_dir_file_size = str(os.path.getsize(os.path.join(local_download_dir, file)))
 
-        rep_file_name = 
-        rep_file_size = requests.head(rep_file_download_link).headers.get('Content-Length', 0)
-
-        if local_dir_file_name == rep_file_name & local_dir_file_size == rep_file_size:
+        if local_dir_file_name == rep_file_name and local_dir_file_size == rep_file_size:
             print(f"✔️ The {file} is downloaded and not corrupted!")
         else:
             print(f"❌ The {file} is corrupted or not downloaded correctly!")
@@ -147,7 +145,7 @@ else:
 
 ### Step 2 - Treating the data scrapped
 ```{python}
-rep_file_list
+type(local_dir_file_size)
 ```
 
 ```{python}
